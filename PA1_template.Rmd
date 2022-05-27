@@ -1,25 +1,185 @@
 ---
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
+title: "Activity Monitoring"
+author: "LVK"
+date: "5/25/2022"
+output: html_document
 ---
 
-
-## Loading and preprocessing the data
-
-
-
-## What is mean total number of steps taken per day?
-
+```{r}
+library(tidyverse)
+library(lubridate)
+library(ggplot2)
+```
 
 
-## What is the average daily activity pattern?
+# Loading Dataset
+
+We'll begin by creating a function that does the job of downloading the data from a connection.
+
+```{r loading function}
+
+#Function to download data from a Url and place it in an appropriate location
+get_files = function (fileUrl, filePath) {
+    data_folder = "./data"
+    if (!dir.exists(data_folder)) {
+        dir.create(data_folder)
+    }
+    
+    if (!file.exists(filePath)) {
+    download.file(fileUrl, destfile = filePath)
+    }
+}
+
+```
+
+Then we will actually pass in the url and path destination to the function
+
+``` {r loading data}
+Url = "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip"
+Path = "./data/personal_activity_monitor_data.zip"
+
+get_files(Url, Path)
+
+````
+
+## Unzip to reveal contents
+
+``` {r} 
+unzip(Path, exdir = "./data")
+```
+### Checking files in directory
+```{r}
+list.files("./data")
+```
 
 
+## Reading the data into R
 
-## Imputing missing values
+``` {r}
+monitor_df = read.csv("./data/activity.csv")
+```
 
 
+# Question 1
 
-## Are there differences in activity patterns between weekdays and weekends?
+## Dates
+First we will use the lubridate package to turn the date variable into a proper date time object
+
+```{r}
+monitor_df$datetime = ymd(monitor_df$date)
+```
+
+## Summarize steps by date
+```{r}
+steps_per_day = monitor_df %>% 
+      group_by(datetime) %>%
+      summarise(totalsteps = sum(steps),
+                meansteps = mean(steps),
+                mediansteps = median(steps)
+                )
+steps_per_day
+```
+
+## Plot the histogram
+Here we will use a special argument stat to show that we will provide data to the y axis rather than it being generated from the count of the number of items in each bin as is the default.
+
+```{r}
+ggplot(data=steps_per_day, aes(datetime, totalsteps)) +
+      geom_histogram(stat='identity') + 
+      labs(title = "Total Steps per Day", subtitle = "Not Filtered for NAs")
+
+
+```
+
+The mean is `steps_per_day$meansteps`
+The median is `steps_per_day$mediansteps`
+
+# Question 2 : Time Series Data
+
+We will group by the interval and get the average across all the days. Then we plot.
+
+```{r}
+by_interval = group_by(monitor_df, interval) %>%
+                  summarize(intervalaverage = mean(steps, na.rm = TRUE))
+ggplot(data = by_interval, aes(interval, intervalaverage)) +
+      geom_line()
+
+```
+
+### The interval with the maximum number of steps is the `max`
+```{r}
+max = filter(by_interval, intervalaverage == max(by_interval$intervalaverage))$interval
+```
+
+# Question 3
+
+```{r}
+#Missing values
+nas = is.na(monitor_df$steps)
+sum(nas)
+
+#Creating a copy of our original dataframe
+#Filling in NAs
+monitor_df_filled = monitor_df
+monitor_df_filled[is.na(monitor_df_filled)] = 0
+```
+
+ We summarize for the sum, 
+ 
+```{r}
+steps_per_day_filled = monitor_df_filled %>% 
+                  group_by(datetime) %>%
+                  summarise(totalsteps = sum(steps, na.rm = TRUE),
+                            meansteps = mean(steps, na.rm = TRUE),
+                            mediansteps = median(steps, na.rm = TRUE)
+                            )
+
+```
+ 
+ The new mean is ` steps_per_day_filled$meansteps `
+ The new median is ` steps_per_day_filled$mediansteps `
+ 
+```{r}
+ggplot(data = steps_per_day_filled, aes(datetime, totalsteps)) +
+      geom_histogram(stat = "identity", fill = "blue") +
+      labs(title = "Total Steps per Day", subtitle = "Filtered for NAs")
+
+```
+ There does not seem to be any noticeable change in the data as a result of the removal of NA values.
+ 
+ # Question 4 : Weekdays vs Weekends
+ We will add a new variable that specifies the day of week. This will allow us to filter for weekdays only and weekends only.
+ 
+```{r}
+#Getting the day of week
+day_of_week = weekdays(monitor_df_filled$datetime)
+
+#Looping through to replace labels with appropriate weekday or weekend values
+weekday_weekend = sapply(day_of_week, function(x) {
+                        if(x == "Saturday" | x == "Sunday") {x = "Weekend"}
+                        else {x = "Weekday"}
+                  })
+
+#Adding variable to dataframe
+monitor_df_filled$dayofweek = weekday_weekend
+```
+ 
+ Next we will group by the two variables: 
+ - interval (step interval)
+ - dayofweek
+ 
+```{r}
+dayofweek_steps = monitor_df_filled %>%
+      group_by(dayofweek, interval) %>%
+      summarize(totalsteps = mean(steps))
+dayofweek_steps
+```
+ 
+ Finally we can create a multi-panel plot
+ 
+```{r}
+ggplot(data = dayofweek_steps, aes(interval, totalsteps)) +
+      geom_histogram(stat = "identity") +
+      facet_grid(.~ dayofweek)
+```
+ 
