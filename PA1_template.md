@@ -78,7 +78,7 @@ ggplot(data=steps_per_day, aes(datetime, totalsteps)) +
 
     ## Warning: Removed 8 rows containing missing values (position_stack).
 
-![](PA1_template_files/figure-markdown_github/unnamed-chunk-7-1.png)
+![](PA1_template_files/figure-markdown_github/unnamed-chunk-23-1.png)
 
 ``` r
 dev.copy(png, file = "hist1.png",width=480,height=480,units="px")
@@ -115,7 +115,7 @@ ggplot(data = by_interval, aes(interval, intervalaverage)) +
       geom_line()
 ```
 
-![](PA1_template_files/figure-markdown_github/unnamed-chunk-9-1.png)
+![](PA1_template_files/figure-markdown_github/unnamed-chunk-25-1.png)
 
 ``` r
 dev.copy(png, file = "hist2.png",width=480,height=480,units="px")
@@ -178,7 +178,7 @@ ggplot(data = steps_per_day_filled, aes(datetime, totalsteps)) +
 
     ## Warning: Ignoring unknown parameters: binwidth, bins, pad
 
-![](PA1_template_files/figure-markdown_github/unnamed-chunk-14-1.png)
+![](PA1_template_files/figure-markdown_github/unnamed-chunk-30-1.png)
 
 ``` r
 dev.copy(png, file = "hist3.png",width=480,height=480,units="px")
@@ -239,7 +239,7 @@ ggplot(data = dayofweek_steps, aes(interval, totalsteps)) +
 
     ## Warning: Ignoring unknown parameters: binwidth, bins, pad
 
-![](PA1_template_files/figure-markdown_github/unnamed-chunk-17-1.png)
+![](PA1_template_files/figure-markdown_github/unnamed-chunk-33-1.png)
 
 ``` r
 dev.copy(png, file = "hist4.png",width=480,height=480,units="px")
