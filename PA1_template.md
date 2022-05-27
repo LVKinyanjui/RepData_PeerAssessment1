@@ -1,23 +1,15 @@
----
-title: "Activity Monitoring"
-author: "LVK"
-date: "5/25/2022"
-output: html_document
----
-
-```{r}
+``` r
 library(tidyverse)
 library(lubridate)
 library(ggplot2)
 ```
 
-
 ## Loading Dataset
 
-We'll begin by creating a function that does the job of downloading the data from a connection.
+We’ll begin by creating a function that does the job of downloading the
+data from a connection.
 
-```{r}
-
+``` r
 #Function to download data from a file_url and place it in an appropriate location
 get_files = function (filefile_url, filePath) {
     data_folder = "./data"
@@ -34,33 +26,34 @@ file_url = "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip"
 Path = "./data/personal_activity_monitor_data.zip"
 
 get_files(file_url, Path)
-
 ```
 
 ## Unzip to reveal contents
 
-``` {r} 
+``` r
 unzip(Path, exdir = "./data")
 ```
 
 ## Reading the data into R
 
-``` {r}
+``` r
 monitor_df = read.csv("./data/activity.csv")
 ```
-
 
 # Question 1
 
 ## Dates
-First we will use the lubridate package to turn the date variable into a proper date time object
 
-```{r}
+First we will use the lubridate package to turn the date variable into a
+proper date time object
+
+``` r
 monitor_df$datetime = ymd(monitor_df$date)
 ```
 
 ## Summarize steps by date
-```{r}
+
+``` r
 steps_per_day = monitor_df %>% 
       group_by(datetime) %>%
       summarise(totalsteps = sum(steps),
@@ -70,53 +63,83 @@ steps_per_day = monitor_df %>%
 ```
 
 ## Plot the histogram
-Here we will use a special argument stat to show that we will provide data to the y axis rather than it being generated from the count of the number of items in each bin as is the default.
 
-```{r}
+Here we will use a special argument stat to show that we will provide
+data to the y axis rather than it being generated from the count of the
+number of items in each bin as is the default.
+
+``` r
 ggplot(data=steps_per_day, aes(datetime, totalsteps)) +
       geom_histogram(stat='identity') + 
       labs(title = "Total Steps per Day", subtitle = "Not Filtered for NAs")
-
-dev.copy(png, file = "hist1.png",width=480,height=480,units="px")
-dev.off()
-
 ```
 
-```{r}
+    ## Warning: Ignoring unknown parameters: binwidth, bins, pad
+
+    ## Warning: Removed 8 rows containing missing values (position_stack).
+
+![](PA1_template_files/figure-markdown_github/unnamed-chunk-140-1.png)
+
+``` r
+dev.copy(png, file = "hist1.png",width=480,height=480,units="px")
+```
+
+    ## png 
+    ##   3
+
+``` r
+dev.off()
+```
+
+    ## png 
+    ##   2
+
+``` r
 mean_steps = mean(steps_per_day$meansteps, na.rm = TRUE)
 median_steps = median(steps_per_day$mediansteps, na.rm = TRUE)
 ```
 
-
 ### Figures
-The mean is ` r mean_steps`
-The median is ` r median_steps`
+
+The mean is `r mean_steps` The median is `r median_steps`
 
 # Question 2 : Time Series Data
 
-We will group by the interval and get the average across all the days. Then we plot.
+We will group by the interval and get the average across all the days.
+Then we plot.
 
-```{r}
+``` r
 by_interval = group_by(monitor_df, interval) %>%
                   summarize(intervalaverage = mean(steps, na.rm = TRUE))
 ggplot(data = by_interval, aes(interval, intervalaverage)) +
       geom_line()
-
-dev.copy(png, file = "hist2.png",width=480,height=480,units="px")
-dev.off()
-
 ```
 
+![](PA1_template_files/figure-markdown_github/unnamed-chunk-142-1.png)
 
-```{r}
+``` r
+dev.copy(png, file = "hist2.png",width=480,height=480,units="px")
+```
+
+    ## png 
+    ##   3
+
+``` r
+dev.off()
+```
+
+    ## png 
+    ##   2
+
+``` r
 max_interval = filter(by_interval, intervalaverage == max(by_interval$intervalaverage))$interval
 ```
 
-The interval with the maximum number of steps is `r max_interval``
+The interval with the maximum number of steps is 835\`
 
 # Question 3
 
-```{r}
+``` r
 #Missing values
 nas = sum(is.na(monitor_df$steps))
 
@@ -126,47 +149,62 @@ monitor_df_filled = monitor_df
 monitor_df_filled[is.na(monitor_df_filled)] = 0
 ```
 
- We summarize for the sum, 
- 
-```{r}
+We summarize for the sum,
+
+``` r
 steps_per_day_filled = monitor_df_filled %>% 
                   group_by(datetime) %>%
                   summarise(totalsteps = sum(steps, na.rm = TRUE),
                             meansteps = mean(steps, na.rm = TRUE),
                             mediansteps = median(steps, na.rm = TRUE)
                             )
-
 ```
 
-
-```{r}
+``` r
 new_mean_steps = mean(steps_per_day_filled$meansteps, na.rm = TRUE)
 new_median_steps = median(steps_per_day_filled$mediansteps, na.rm = TRUE)
 ```
 
+### Figures
 
-### Figures 
- Number of NAs ` r nas`
- The new mean is ` r new_mean_steps `
- The new median is ` r new_median_steps `
- 
-```{r}
+Number of NAs `r nas` The new mean is `r new_mean_steps` The new median
+is `r new_median_steps`
+
+``` r
 ggplot(data = steps_per_day_filled, aes(datetime, totalsteps)) +
       geom_histogram(stat = "identity", fill = "blue") +
       labs(title = "Total Steps per Day", subtitle = "Filtered for NAs")
-
-dev.copy(png, file = "hist3.png",width=480,height=480,units="px")
-dev.off()
-
 ```
 
-## Conclusion 
-There does not seem to be any noticeable change in the data as a result of the removal of NA values.
- 
-# Question 4 : Weekdays vs Weekends  
-We will add a new variable that specifies the day of week. This will allow us to filter for weekdays only and weekends only.
- 
-```{r}
+    ## Warning: Ignoring unknown parameters: binwidth, bins, pad
+
+![](PA1_template_files/figure-markdown_github/unnamed-chunk-147-1.png)
+
+``` r
+dev.copy(png, file = "hist3.png",width=480,height=480,units="px")
+```
+
+    ## png 
+    ##   3
+
+``` r
+dev.off()
+```
+
+    ## png 
+    ##   2
+
+## Conclusion
+
+There does not seem to be any noticeable change in the data as a result
+of the removal of NA values.
+
+# Question 4 : Weekdays vs Weekends
+
+We will add a new variable that specifies the day of week. This will
+allow us to filter for weekdays only and weekends only.
+
+``` r
 #Getting the day of week
 day_of_week = weekdays(monitor_df_filled$datetime)
 
@@ -179,25 +217,43 @@ weekday_weekend = sapply(day_of_week, function(x) {
 #Adding variable to dataframe
 monitor_df_filled$dayofweek = weekday_weekend
 ```
- 
- Next we will group by the two variables:  
- - interval (step interval)
- - dayofweek
- 
-```{r}
+
+Next we will group by the two variables:  
+- interval (step interval) - dayofweek
+
+``` r
 dayofweek_steps = monitor_df_filled %>%
       group_by(dayofweek, interval) %>%
       summarize(totalsteps = mean(steps))
 ```
- 
+
+    ## `summarise()` has grouped output by 'dayofweek'. You can override using the `.groups` argument.
+
 Finally we can create a multi-panel plot
- 
-```{r}
+
+``` r
 ggplot(data = dayofweek_steps, aes(interval, totalsteps)) +
       geom_histogram(stat = "identity") +
       facet_grid(.~ dayofweek)
+```
+
+    ## Warning: Ignoring unknown parameters: binwidth, bins, pad
+
+![](PA1_template_files/figure-markdown_github/unnamed-chunk-150-1.png)
+
+``` r
 dev.copy(png, file = "hist4.png",width=480,height=480,units="px")
+```
+
+    ## png 
+    ##   3
+
+``` r
 dev.off()
 ```
 
+    ## png 
+    ##   2
 
+The activity seems to be higher on average on weekdays but the activity
+maximum is during weekdays.
