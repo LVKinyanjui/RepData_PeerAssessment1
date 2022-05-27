@@ -198,7 +198,6 @@ ggplot(data = dayofweek_steps, aes(interval, totalsteps)) +
       facet_grid(.~ dayofweek)
 dev.copy(png, file = "hist4.png",width=480,height=480,units="px")
 dev.off()
-
 ```
 
 
