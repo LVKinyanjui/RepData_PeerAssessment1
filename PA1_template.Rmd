@@ -77,6 +77,8 @@ ggplot(data=steps_per_day, aes(datetime, totalsteps)) +
       geom_histogram(stat='identity') + 
       labs(title = "Total Steps per Day", subtitle = "Not Filtered for NAs")
 
+dev.copy(png, file = "hist1.png",width=480,height=480,units="px")
+dev.off()
 
 ```
 
@@ -99,6 +101,9 @@ by_interval = group_by(monitor_df, interval) %>%
                   summarize(intervalaverage = mean(steps, na.rm = TRUE))
 ggplot(data = by_interval, aes(interval, intervalaverage)) +
       geom_line()
+
+dev.copy(png, file = "hist2.png",width=480,height=480,units="px")
+dev.off()
 
 ```
 
@@ -150,6 +155,9 @@ ggplot(data = steps_per_day_filled, aes(datetime, totalsteps)) +
       geom_histogram(stat = "identity", fill = "blue") +
       labs(title = "Total Steps per Day", subtitle = "Filtered for NAs")
 
+dev.copy(png, file = "hist3.png",width=480,height=480,units="px")
+dev.off()
+
 ```
 
 ## Conclusion 
@@ -188,6 +196,9 @@ Finally we can create a multi-panel plot
 ggplot(data = dayofweek_steps, aes(interval, totalsteps)) +
       geom_histogram(stat = "identity") +
       facet_grid(.~ dayofweek)
+dev.copy(png, file = "hist4.png",width=480,height=480,units="px")
+dev.off()
+
 ```
 
 
