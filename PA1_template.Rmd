@@ -12,46 +12,36 @@ library(ggplot2)
 ```
 
 
-# Loading Dataset
+## Loading Dataset
 
 We'll begin by creating a function that does the job of downloading the data from a connection.
 
-```{r loading function}
+```{r}
 
-#Function to download data from a Url and place it in an appropriate location
-get_files = function (fileUrl, filePath) {
+#Function to download data from a file_url and place it in an appropriate location
+get_files = function (filefile_url, filePath) {
     data_folder = "./data"
     if (!dir.exists(data_folder)) {
         dir.create(data_folder)
     }
     
     if (!file.exists(filePath)) {
-    download.file(fileUrl, destfile = filePath)
+    download.file(filefile_url, destfile = filePath)
     }
 }
 
-```
-
-Then we will actually pass in the url and path destination to the function
-
-``` {r loading data}
-Url = "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip"
+file_url = "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip"
 Path = "./data/personal_activity_monitor_data.zip"
 
-get_files(Url, Path)
+get_files(file_url, Path)
 
-````
+```
 
 ## Unzip to reveal contents
 
 ``` {r} 
 unzip(Path, exdir = "./data")
 ```
-### Checking files in directory
-```{r}
-list.files("./data")
-```
-
 
 ## Reading the data into R
 
@@ -77,7 +67,6 @@ steps_per_day = monitor_df %>%
                 meansteps = mean(steps),
                 mediansteps = median(steps)
                 )
-steps_per_day
 ```
 
 ## Plot the histogram
@@ -91,8 +80,15 @@ ggplot(data=steps_per_day, aes(datetime, totalsteps)) +
 
 ```
 
-The mean is `steps_per_day$meansteps`
-The median is `steps_per_day$mediansteps`
+```{r}
+mean_steps = mean(steps_per_day$meansteps, na.rm = TRUE)
+median_steps = median(steps_per_day$mediansteps, na.rm = TRUE)
+```
+
+
+### Figures
+The mean is ` r mean_steps`
+The median is ` r median_steps`
 
 # Question 2 : Time Series Data
 
@@ -106,17 +102,18 @@ ggplot(data = by_interval, aes(interval, intervalaverage)) +
 
 ```
 
-### The interval with the maximum number of steps is the `max`
+
 ```{r}
-max = filter(by_interval, intervalaverage == max(by_interval$intervalaverage))$interval
+max_interval = filter(by_interval, intervalaverage == max(by_interval$intervalaverage))$interval
 ```
+
+The interval with the maximum number of steps is `r max_interval``
 
 # Question 3
 
 ```{r}
 #Missing values
-nas = is.na(monitor_df$steps)
-sum(nas)
+nas = sum(is.na(monitor_df$steps))
 
 #Creating a copy of our original dataframe
 #Filling in NAs
@@ -135,9 +132,18 @@ steps_per_day_filled = monitor_df_filled %>%
                             )
 
 ```
- 
- The new mean is ` steps_per_day_filled$meansteps `
- The new median is ` steps_per_day_filled$mediansteps `
+
+
+```{r}
+new_mean_steps = mean(steps_per_day_filled$meansteps, na.rm = TRUE)
+new_median_steps = median(steps_per_day_filled$mediansteps, na.rm = TRUE)
+```
+
+
+### Figures 
+ Number of NAs ` r nas`
+ The new mean is ` r new_mean_steps `
+ The new median is ` r new_median_steps `
  
 ```{r}
 ggplot(data = steps_per_day_filled, aes(datetime, totalsteps)) +
@@ -145,10 +151,12 @@ ggplot(data = steps_per_day_filled, aes(datetime, totalsteps)) +
       labs(title = "Total Steps per Day", subtitle = "Filtered for NAs")
 
 ```
- There does not seem to be any noticeable change in the data as a result of the removal of NA values.
+
+## Conclusion 
+There does not seem to be any noticeable change in the data as a result of the removal of NA values.
  
- # Question 4 : Weekdays vs Weekends
- We will add a new variable that specifies the day of week. This will allow us to filter for weekdays only and weekends only.
+# Question 4 : Weekdays vs Weekends  
+We will add a new variable that specifies the day of week. This will allow us to filter for weekdays only and weekends only.
  
 ```{r}
 #Getting the day of week
@@ -164,7 +172,7 @@ weekday_weekend = sapply(day_of_week, function(x) {
 monitor_df_filled$dayofweek = weekday_weekend
 ```
  
- Next we will group by the two variables: 
+ Next we will group by the two variables:  
  - interval (step interval)
  - dayofweek
  
@@ -172,14 +180,14 @@ monitor_df_filled$dayofweek = weekday_weekend
 dayofweek_steps = monitor_df_filled %>%
       group_by(dayofweek, interval) %>%
       summarize(totalsteps = mean(steps))
-dayofweek_steps
 ```
  
- Finally we can create a multi-panel plot
+Finally we can create a multi-panel plot
  
 ```{r}
 ggplot(data = dayofweek_steps, aes(interval, totalsteps)) +
       geom_histogram(stat = "identity") +
       facet_grid(.~ dayofweek)
 ```
- 
+
+
